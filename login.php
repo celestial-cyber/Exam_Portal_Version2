@@ -3,9 +3,9 @@ session_start();
 
 // 1. DATABASE CONNECTION
 $servername = "localhost";
-$db_username = "root"; // Default XAMPP user
-$db_password = "";     // Default XAMPP password
-$dbname = "engine_db"; // Your database name from screenshot
+$db_username = "root";
+$db_password = "root@123";
+$dbname = "engine_db";
 
 $conn = new mysqli($servername, $db_username, $db_password, $dbname);
 
@@ -14,47 +14,60 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+$conn->set_charset("utf8mb4");
 $error = "";
 
 // 2. LOGIN LOGIC
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $password = $_POST['password'];
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
 
-    // Query your 'engine_user' table
-    $sql = "SELECT * FROM engine_user WHERE username = '$username'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
+    if (!empty($username) && !empty($password)) {
+        // Use prepared statements to prevent SQL injection
+        $sql = "SELECT id, username, password, role FROM engine_user WHERE username = ?";
+        $stmt = $conn->prepare($sql);
         
-        /* NOTE: In your screenshot, 'admin' has a different password format.
-           For the 'trainer' and 'user' rows, they use password_verify.
-           If 'admin' is plain text, use: if($password == $row['password'])
-        */
-        if (password_verify($password, $row['password']) || $password === $row['password']) {
-            
-            $_SESSION['username'] = $row['username'];
-            $_SESSION['role'] = $row['role'];
+        if ($stmt) {
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
-            // 3. MULTI-USER REDIRECTION
-            if ($row['role'] == 'admin') {
-                header("Location: admin_dashboard.php");
-            } elseif ($row['role'] == 'trainer') {
-                header("Location: trainer_dashboard.php");
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                
+                // Check password (support both hashed and plain text for backward compatibility)
+                if (password_verify($password, $row['password']) || $password === $row['password']) {
+                    
+                    $_SESSION['user_id'] = $row['id'];
+                    $_SESSION['username'] = $row['username'];
+                    $_SESSION['role'] = $row['role'];
+
+                    // 3. MULTI-USER REDIRECTION
+                    if ($row['role'] == 'admin') {
+                        header("Location: admin_dashboard.php");
+                    } elseif ($row['role'] == 'trainer') {
+                        header("Location: trainer_dashboard.php");
+                    } else {
+                        header("Location: student_dashboard.php");
+                    }
+                    exit();
+                    
+                } else {
+                    $error = "Incorrect password.";
+                }
             } else {
-                header("Location: student_dashboard.php");
+                $error = "No account found with that username.";
             }
-            exit();
-            
+            $stmt->close();
         } else {
-            $error = "Incorrect password.";
+            $error = "Database error. Please try again.";
         }
     } else {
-        $error = "No account found with that username.";
+        $error = "Please enter both username and password.";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

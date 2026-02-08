@@ -7,29 +7,30 @@ $role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
 
 <nav class="custom-nav">
     <div class="nav-wrapper">
+        <div class="left-section">
             <?php if ($role == 'user'): ?>
-                <div class="left-section">
-                    <div class="nav-logo">
-                        <a href="student_dashboard.php">ENGINE</a>
+                <div class="nav-logo">
+                    <a href="student_dashboard.php">ENGINE</a>
                 </div>
                 <a href="take_exam.php" class="btn-action btn-user">Take Exam</a>
             <?php elseif ($role == 'trainer'): ?>
-                <div class="left-section">
-                    <div class="nav-logo">
-                        <a href="trainer_dashboard.php">ENGINE</a>
+                <div class="nav-logo">
+                    <a href="trainer_dashboard.php">ENGINE</a>
                 </div>
             <?php elseif ($role == 'admin'): ?>
-                <div class="left-section">
-                    <div class="nav-logo">
-                        <a href="admin_dashboard.php">ENGINE</a>
+                <div class="nav-logo">
+                    <a href="admin_dashboard.php">ENGINE</a>
+                </div>
+            <?php else: ?>
+                <div class="nav-logo">
+                    <a href="index.php">ENGINE</a>
                 </div>
             <?php endif; ?>
         </div>
 
         <div class="right-section">
-            <a href="logout.php" class="logout-btn">Logout </a>
+            <a href="logout.php" class="logout-btn">Logout</a>
         </div>
-        
     </div>
 </nav>
 

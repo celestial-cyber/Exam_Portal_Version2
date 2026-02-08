@@ -7,10 +7,217 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'user') {
     exit();
 }
 
-$exam_type = isset($_GET['type']) ? mysqli_real_escape_string($conn, $_GET['type']) : 'aptitude';
-$sql = "SELECT * FROM exam_questions WHERE category = '$exam_type' ORDER BY RAND() LIMIT 10";
-$result = $conn->query($sql);
+$exam_type = isset($_GET['type']) ? $_GET['type'] : 'aptitude';
+
+// Use prepared statement to prevent SQL injection
+$sql = "SELECT id, question_text, option_a, option_b, option_c, option_d, correct_answer FROM exam_questions WHERE category = ? ORDER BY RAND() LIMIT 10";
+$stmt = $conn->prepare($sql);
+
+if (!$stmt) {
+    die("Query preparation failed: " . $conn->error);
+}
+
+$stmt->bind_param("s", $exam_type);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><?php echo ucfirst($exam_type); ?> Quiz - ENGINE</title>
+    <style>
+        body { margin: 0; background: #1a1a2e; color: white; font-family: 'Segoe UI', sans-serif; }
+        .quiz-container { padding-top: 140px; max-width: 800px; margin: 0 auto; padding-inline: 20px; padding-bottom: 50px; }
+        
+        .timer-bar {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background: #ff4b4b;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            font-weight: bold;
+            font-size: 1.2rem;
+            z-index: 999;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .question-card { background: rgba(255,255,255,0.05); padding: 30px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
+        .option { display: block; background: rgba(255,255,255,0.1); padding: 15px; margin: 10px 0; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .option:hover { background: rgba(65, 88, 208, 0.3); }
+        .option input[type="radio"] { margin-right: 10px; cursor: pointer; }
+        .submit-btn { background: #4158D0; color: white; border: none; padding: 15px 40px; border-radius: 50px; font-weight: bold; cursor: pointer; display: block; margin: 30px auto; }
+        .submit-btn:hover { background: #3649ac; }
+
+        .custom-nav {
+            display: none !important;
+        }
+
+        .timer-bar {
+            top: 0 !important;
+            background: #2d3436;
+            border-bottom: 3px solid #ff4b4b;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quiz-container {
+            padding-top: 80px;
+        }
+
+        #warning-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ff4b4b;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 10000;
+            display: none;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        #fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a2e;
+            z-index: 20000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="fullscreen-overlay">
+        <h1 style="color:white; margin-bottom:20px;">Ready to Begin?</h1>
+        <p style="color:#ccc; margin-bottom:30px;">Click the button below to enter secure exam mode.</p>
+        <button onclick="enterSecureMode()" style="background:#4158D0; color:white; border:none; padding:15px 40px; border-radius:50px; font-weight:bold; cursor:pointer; font-size:1.2rem;">Enter Fullscreen Exam</button>
+    </div>
+
+    <div id="warning-toast">
+        <h2 id="warning-title">Warning!</h2>
+        <p id="warning-msg"></p>
+    </div>
+
+    <div class="timer-bar">
+        Time Remaining: <span id="timer">20:00</span>
+    </div>
+
+    <div class="quiz-container">
+        <h1><?php echo htmlspecialchars(ucfirst($exam_type)); ?> Assessment</h1>
+        <form id="examForm" action="submit_results.php" method="POST">
+            <input type="hidden" name="category" value="<?php echo htmlspecialchars($exam_type); ?>">
+
+            <?php if ($result->num_rows > 0): $q_num = 1; ?>
+                <?php while($row = $result->fetch_assoc()): ?>
+                    <div class="question-card">
+                        <p><strong>Question <?php echo $q_num++; ?>:</strong> <?php echo htmlspecialchars($row['question_text']); ?></p>
+                        <label class="option"><input type="radio" name="q<?php echo $row['id']; ?>" value="a" required> A) <?php echo htmlspecialchars($row['option_a']); ?></label>
+                        <label class="option"><input type="radio" name="q<?php echo $row['id']; ?>" value="b"> B) <?php echo htmlspecialchars($row['option_b']); ?></label>
+                        <label class="option"><input type="radio" name="q<?php echo $row['id']; ?>" value="c"> C) <?php echo htmlspecialchars($row['option_c']); ?></label>
+                        <label class="option"><input type="radio" name="q<?php echo $row['id']; ?>" value="d"> D) <?php echo htmlspecialchars($row['option_d']); ?></label>
+                    </div>
+                <?php endwhile; ?>
+                <button type="submit" class="submit-btn">Submit Exam</button>
+            <?php else: ?>
+                <div style="text-align: center; padding: 50px;">
+                    <p style="font-size: 1.2rem;">No questions found for this category.</p>
+                    <a href="take_exam.php" style="color: #4158D0; text-decoration: none; margin-top: 20px; display: inline-block;">Back to Exams</a>
+                </div>
+            <?php endif; ?>
+        </form>
+    </div>
+
+    <script>
+        let timeInSeconds = 20 * 60;
+        let warnings = 0;
+        const maxWarnings = 3;
+        const form = document.querySelector('#examForm');
+
+        function enterSecureMode() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().then(() => {
+                    document.getElementById('fullscreen-overlay').style.display = 'none';
+                });
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+                document.getElementById('fullscreen-overlay').style.display = 'none';
+            } else {
+                document.getElementById('fullscreen-overlay').style.display = 'none';
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                triggerWarning("You exited Fullscreen Mode. Please stay in the exam.");
+                document.getElementById('fullscreen-overlay').style.display = 'flex';
+            }
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                triggerWarning("Window/Tab switching detected!");
+            }
+        });
+
+        function triggerWarning(reason) {
+            warnings++;
+            const toast = document.getElementById('warning-toast');
+            const msg = document.getElementById('warning-msg');
+            
+            if (warnings >= maxWarnings) {
+                alert("FINAL ATTEMPT: Exam auto-submitting due to security violations.");
+                if (form) form.submit();
+            } else {
+                msg.innerText = reason + "\nChances remaining: " + (maxWarnings - warnings);
+                toast.style.display = 'block';
+                setTimeout(() => { toast.style.display = 'none'; }, 4000);
+            }
+        }
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || (e.ctrlKey && (e.keyCode == 85 || (e.keyCode == 73 && e.shiftKey)))) {
+                triggerWarning("Developer tools are disabled.");
+                return false;
+            }
+        };
+
+        const countdown = setInterval(() => {
+            let minutes = Math.floor(timeInSeconds / 60);
+            let seconds = timeInSeconds % 60;
+            document.querySelector('#timer').textContent = `${minutes}:${seconds < 10 ? '0'+seconds : seconds}`;
+            if (timeInSeconds <= 0) { clearInterval(countdown); if (form) form.submit(); }
+            timeInSeconds--;
+        }, 1000);
+
+        (function() {
+            window.history.pushState(null, "", window.location.href);        
+            window.onpopstate = function() {
+                window.history.pushState(null, "", window.location.href);
+                triggerWarning("Using the back button is not allowed during the exam!");
+            };
+        })();
+    </script>
+
+</body>
+</html>
 
 <!DOCTYPE html>
 <html lang="en">

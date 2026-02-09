@@ -1,0 +1,139 @@
+/* 
+   THEME VARIABLES - Blue-Only Professional Theme
+   Reusable across all pages: Landing, Admin Dashboard, Student Dashboard, Trainer Dashboard
+*/
+
+:root {
+    /* Primary Blue Gradient Colors */
+    --color-primary-dark: #0a3d6f;      /* Deep blue - Headers, Primary buttons */
+    --color-primary-medium: #1e5f96;    /* Medium blue - Secondary elements */
+    --color-primary-light: #3b82c4;     /* Light blue - Accents, borders */
+    --color-primary-lighter: #5da8dd;   /* Lighter blue - Hover states */
+    --color-primary-lightest: #e3f2fd;  /* Very light blue - Backgrounds */
+    
+    /* Neutral Colors */
+    --color-success: #10b981;            /* Green for success states */
+    --color-warning: #f59e0b;            /* Amber for warnings */
+    --color-error: #ef4444;              /* Red for errors */
+    --color-info: #3b82c4;               /* Blue for info */
+    
+    /* Background Colors */
+    --color-bg-primary: #ffffff;         /* White background */
+    --color-bg-secondary: #f8fafc;       /* Light gray background */
+    --color-bg-tertiary: #e3f2fd;        /* Very light blue background */
+    
+    /* Text Colors */
+    --color-text-primary: #1e293b;       /* Dark text */
+    --color-text-secondary: #64748b;     /* Gray text */
+    --color-text-light: #94a3b8;         /* Light gray text */
+    --color-text-inverse: #ffffff;       /* White text on dark bg */
+    
+    /* Border Colors */
+    --color-border: #e2e8f0;             /* Light gray border */
+    --color-border-light: #f1f5f9;       /* Very light border */
+    --color-border-dark: #cbd5e1;        /* Darker border */
+    
+    /* Shadow Definitions */
+    --shadow-sm: 0 1px 2px 0 rgba(15, 61, 111, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(15, 61, 111, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(15, 61, 111, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(15, 61, 111, 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgba(15, 61, 111, 0.15);
+    
+    /* Typography */
+    --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    --font-family-mono: 'Monaco', 'Courier New', monospace;
+    
+    --font-size-xs: 0.75rem;       /* 12px */
+    --font-size-sm: 0.875rem;      /* 14px */
+    --font-size-base: 1rem;        /* 16px */
+    --font-size-lg: 1.125rem;      /* 18px */
+    --font-size-xl: 1.25rem;       /* 20px */
+    --font-size-2xl: 1.5rem;       /* 24px */
+    --font-size-3xl: 1.875rem;     /* 30px */
+    --font-size-4xl: 2.25rem;      /* 36px */
+    --font-size-5xl: 3rem;         /* 48px */
+    
+    /* Font Weights */
+    --fw-light: 300;
+    --fw-normal: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+    --fw-extrabold: 800;
+    
+    /* Spacing Scale */
+    --spacing-xs: 0.25rem;         /* 4px */
+    --spacing-sm: 0.5rem;          /* 8px */
+    --spacing-md: 1rem;            /* 16px */
+    --spacing-lg: 1.5rem;          /* 24px */
+    --spacing-xl: 2rem;            /* 32px */
+    --spacing-2xl: 3rem;           /* 48px */
+    --spacing-3xl: 4rem;           /* 64px */
+    --spacing-4xl: 6rem;           /* 96px */
+    
+    /* Border Radius */
+    --radius-sm: 0.25rem;          /* 4px */
+    --radius-md: 0.5rem;           /* 8px */
+    --radius-lg: 0.75rem;          /* 12px */
+    --radius-xl: 1rem;             /* 16px */
+    --radius-2xl: 1.5rem;          /* 24px */
+    --radius-full: 9999px;         /* Fully rounded */
+    
+    /* Transitions */
+    --transition-fast: 150ms ease-in-out;
+    --transition-base: 250ms ease-in-out;
+    --transition-slow: 350ms ease-in-out;
+    
+    /* Breakpoints (used in media queries) */
+    --breakpoint-xs: 320px;
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
+}
+
+/* Global Styles Using Theme Variables */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-family-base);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-primary-light);
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-medium);
+}
+
+/* Selection Color */
+::selection {
+    background-color: var(--color-primary-light);
+    color: var(--color-text-inverse);
+}
